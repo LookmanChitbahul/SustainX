@@ -5,6 +5,9 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# Environment & Secrets
+.env
 *.db
 
 # Virtual Environment
@@ -26,10 +29,5 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Environment
-.env
-.env.local
-
 # Misc
-*.bat
 pdf_texts.txt

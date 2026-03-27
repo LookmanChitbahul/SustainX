@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import models
-from database import engine
-from routes import router
+from app.models.model import Base
+from app.db.session import engine
+from app.api.endpoints import router
 
 # Create DB tables (in-memory/actual pg based on database.py)
-models.Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="SustainX Innovation Challenge Backend",
@@ -16,7 +16,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False, # Must be False if origins is *
     allow_methods=["*"],
     allow_headers=["*"],
 )

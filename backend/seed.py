@@ -1,6 +1,6 @@
 import pandas as pd
-from database import SessionLocal, engine
-from models import Base, User, Wallet, MeterReading
+from app.db.session import SessionLocal, engine, Base
+from app.models.model import User, Wallet, MeterReading
 import os
 
 # Create DB schema
@@ -19,14 +19,31 @@ db = SessionLocal()
 
 try:
     print("Seeding Users and Wallets...")
-    # Seed unique users
+    # Add Admin user if not exists
+    admin = db.query(User).filter(User.user_id == 'admin').first()
+    if not admin:
+        admin = User(
+            user_id='admin',
+            user_type='prosumer', # Admin can act as prosumer
+            meter_id='ADMIN_METER',
+            password='12345678',
+            is_admin=True
+        )
+        db.add(admin)
+        db.commit()
+        db.add(Wallet(user_id='admin'))
+        db.commit()
+
+    # Seed unique users from dataset
     for _, row in df.drop_duplicates(subset=['user_id']).iterrows():
         user = db.query(User).filter(User.user_id == row['user_id']).first()
         if not user:
             user = User(
                 user_id=row['user_id'],
                 user_type=row['user_type'],
-                meter_id=row['meter_id']
+                meter_id=row['meter_id'],
+                password='12345678',
+                is_admin=False
             )
             db.add(user)
             db.commit()
