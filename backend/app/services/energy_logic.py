@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from models import User, MeterReading, Wallet, Transaction, CoinType, TxType, TxStatus
-import ml_service
+from app.models.model import User, MeterReading, Wallet, Transaction, CoinType, TxType, TxStatus
+from app import ml_service
 
 def process_billing_cycle(db: Session, cycle: int):
     # Fetch all unprocessed meter readings for the cycle

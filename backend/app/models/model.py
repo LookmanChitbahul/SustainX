@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Date
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
-from database import Base
+from app.db.session import Base
 
 class UserType(str, enum.Enum):
     prosumer = "prosumer"
@@ -26,8 +26,10 @@ class TxStatus(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
     user_id = Column(String, primary_key=True, index=True)
-    user_type = Column(Enum(UserType))
+    user_type = Column(String) # 'prosumer' or 'consumer'
     meter_id = Column(String, unique=True, index=True)
+    password = Column(String, default="12345678")
+    is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     meter_readings = relationship("MeterReading", back_populates="user")
