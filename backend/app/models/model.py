@@ -67,3 +67,12 @@ class Transaction(Base):
     tx_type = Column(Enum(TxType))
     timestamp = Column(DateTime, default=datetime.utcnow)
     status = Column(Enum(TxStatus), default=TxStatus.Completed)
+    block_id = Column(Integer, ForeignKey("blocks.id"), nullable=True)
+
+class Block(Base):
+    __tablename__ = "blocks"
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    prev_hash = Column(String, nullable=False)
+    current_hash = Column(String, nullable=False)
+    data_summary = Column(String) # Simple summary of what's in the block

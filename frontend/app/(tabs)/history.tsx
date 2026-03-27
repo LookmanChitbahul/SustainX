@@ -14,6 +14,13 @@ type Tx = {
   tx_type: string;
   timestamp: string;
   status: string;
+  block_id: number | null;
+};
+
+type Block = {
+  id: number;
+  current_hash: string;
+  prev_hash: string;
 };
 
 const COIN_COLORS: Record<string, string> = { Yellow: '#F59E0B', Green: '#22C55E', Red: '#EF4444' };
@@ -43,9 +50,15 @@ export default function History() {
 
   useFocusEffect(
     useCallback(() => {
-      if (selectedUser) {
-        getTransactions(selectedUser).then(setTransactions).catch(() => setTransactions([]));
-      }
+      const fetchTxs = () => {
+        if (selectedUser) {
+          getTransactions(selectedUser).then(setTransactions).catch(() => setTransactions([]));
+        }
+      };
+
+      fetchTxs();
+      const interval = setInterval(fetchTxs, 3000); // 3s polling
+      return () => clearInterval(interval);
     }, [selectedUser])
   );
 
@@ -89,7 +102,7 @@ export default function History() {
                 </Text>
               </View>
               <Text style={[s.txCoin, { color: COIN_COLORS[tx.coin_type] }]}>
-                {tx.coin_type}
+                {tx.coin_type} (≈ {(tx.amount * (tx.coin_type === 'Yellow' ? 4 : tx.coin_type === 'Green' ? 7 : 10)).toFixed(0)} MUR)
               </Text>
             </View>
 
@@ -110,6 +123,12 @@ export default function History() {
             <View style={[s.statusBadge, tx.status === 'Completed' ? s.statusOk : s.statusFail]}>
               <Text style={s.statusText}>{tx.status}</Text>
             </View>
+
+            {tx.block_id && (
+              <View style={s.blockchainBadge}>
+                <Text style={s.blockchainText}>🔒 Secured by Block #{tx.block_id}</Text>
+              </View>
+            )}
           </View>
         ))
       )}
@@ -143,4 +162,6 @@ const s = StyleSheet.create({
   statusOk: { backgroundColor: '#052E16' },
   statusFail: { backgroundColor: '#450A0A' },
   statusText: { color: '#22C55E', fontSize: 11, fontWeight: '600' },
+  blockchainBadge: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#334155' },
+  blockchainText: { color: '#94A3B8', fontSize: 10, fontFamily: 'monospace' },
 });

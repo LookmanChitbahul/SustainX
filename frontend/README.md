@@ -1,50 +1,51 @@
-# Welcome to your Expo app 👋
+# SustainX Mobile — Green Energy Wallet
+### ⚡ Sustainable Enterprise Innovation Challenge 2026
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The SustainX mobile app is a cross-platform (Android/iOS) dashboard built with **React Native** and **Expo SDK 52**. It serves as the primary gateway for users to interact with the blockchain-secured energy economy.
 
-## Get started
+---
 
-1. Install dependencies
+## ✨ Key Innovation Features (Mobile)
 
-   ```bash
-   npm install
-   ```
+1.  **⚡ Secure Virtual Wallet**: Real-time balance updates for **Yellow** (Generation), **Green** (P2P), and **Red** (Grid) coins, with automatic MUR conversion.
+2.  **📉 Predictive Energy Market**: Interactive graph displaying dynamic energy prices derived from our **Linear Regression** model, featuring weather-based volatility.
+3.  **💸 Peer-to-Peer (P2P) Trading**: Seamless transfer interface for buying/selling green energy directly on the immutable ledger.
+4.  **🔒 Blockchain Proof of Stake**: Every transaction history entry features a 🔒 **"Secured by Block"** marker, providing cryptographic verification directly to the user's handset.
+5.  **🧠 AI Anomaly Protection**: Visual feedback for meter data integrity, verified by the backend 4-model ensemble.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🏗️ Technical Stack (Frontend)
 
-In the output, you'll find options to open the app in a
+*   **Runtime**: Expo SDK 52 (Managed Workflow)
+*   **Language**: TypeScript
+*   **Navigation**: Expo Router (File-based)
+*   **Styling**: NativeWind (Tailwind CSS for React Native)
+*   **Icons**: Lucide & Material Community Icons
+*   **State**: React Hooks with real-time 3s API polling
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 📁 Connection Logic (`api.ts`)
 
-## Get a fresh project
+The app communicates with the FastAPI backend via a central API client:
+*   **Host Detection**: Automatically switches between local development and remote tunnel URLs.
+*   **Bypass Strategy**: Includes the `bypass-tunnel-reminder` header to ensure seamless communication through LocalTunnel and Ngrok proxies.
+*   **Location**: Found in `frontend/api.ts`.
 
-When you're ready, run:
+---
+
+## 🚀 Rapid Demo Setup
+
+To participate in the multi-user shared demo:
 
 ```bash
-npm run reset-project
+# 1. Install dependencies
+npm install
+
+# 2. Start Expo with the remote tunnel
+npx expo start --clear --tunnel
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+**Built for the Sustainable Enterprise Innovation Challenge 2026.**

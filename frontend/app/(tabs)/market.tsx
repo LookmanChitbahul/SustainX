@@ -17,10 +17,16 @@ export default function Market() {
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
-      getMarketData()
-        .then((d) => setData(d))
-        .catch(() => setData(null))
-        .finally(() => setLoading(false));
+      const fetchData = () => {
+        getMarketData()
+          .then((d) => setData(d))
+          .catch(() => setData(null))
+          .finally(() => setLoading(false));
+      };
+      
+      fetchData();
+      const interval = setInterval(fetchData, 3000);
+      return () => clearInterval(interval);
     }, [])
   );
 
@@ -66,13 +72,18 @@ export default function Market() {
       <Text style={s.sub}>ML-Powered Price Prediction & Supply/Demand</Text>
 
       <View style={s.priceCard}>
-        <Text style={s.priceLabel}>Current Green Coin Price</Text>
+        <View style={s.priceHeader}>
+          <Text style={s.priceLabel}>P2P Energy Rate (Green Coin)</Text>
+          <View style={[s.trendBadge, data.price_trend === 'up' ? s.trendUp : s.trendDown]}>
+            <Text style={s.trendText}>{data.price_trend === 'up' ? '▲ Volatile' : '▼ Stable'}</Text>
+          </View>
+        </View>
         <View style={s.priceRow}>
           <Text style={s.priceValue}>{data.current_price.toFixed(2)}</Text>
-          <Text style={s.priceUnit}>kWh/unit</Text>
-          <View style={[s.trendBadge, data.price_trend === 'up' ? s.trendUp : s.trendDown]}>
-            <Text style={s.trendText}>{data.price_trend === 'up' ? '▲ Rising' : '▼ Falling'}</Text>
-          </View>
+          <Text style={s.priceUnit}>MUR / kWh</Text>
+        </View>
+        <View style={s.noticeBox}>
+          <Text style={s.noticeText}>⚠️ MARKET NOTICE: Prices fluctuate ±1-2 MUR based on local solar availability (Weather Factor).</Text>
         </View>
       </View>
 
@@ -156,15 +167,18 @@ const s = StyleSheet.create({
   header: { fontSize: 28, fontWeight: '800', color: '#F8FAFC', marginBottom: 4 },
   sub: { color: '#64748B', fontSize: 13, marginBottom: 20 },
   sectionTitle: { color: '#94A3B8', fontSize: 12, fontWeight: '700', textTransform: 'uppercase', marginTop: 24, marginBottom: 12 },
-  priceCard: { backgroundColor: '#1E293B', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#334155' },
-  priceLabel: { color: '#94A3B8', fontSize: 13 },
-  priceRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 8 },
+  priceCard: { backgroundColor: '#1E293B', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: '#334155' },
+  priceHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  priceLabel: { color: '#94A3B8', fontSize: 12, fontWeight: '600' },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline' },
   priceValue: { color: '#F8FAFC', fontSize: 36, fontWeight: '800' },
-  priceUnit: { color: '#64748B', fontSize: 14, marginLeft: 8 },
-  trendBadge: { marginLeft: 12, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  trendUp: { backgroundColor: '#052E16' },
-  trendDown: { backgroundColor: '#450A0A' },
-  trendText: { color: '#F8FAFC', fontSize: 11, fontWeight: '700' },
+  priceUnit: { color: '#64748B', fontSize: 15, marginLeft: 8, fontWeight: '600' },
+  trendBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  trendUp: { backgroundColor: '#451A03' },
+  trendDown: { backgroundColor: '#064E3B' },
+  trendText: { color: '#FDE68A', fontSize: 10, fontWeight: '700' },
+  noticeBox: { backgroundColor: '#0F172A', padding: 10, borderRadius: 8, marginTop: 12, borderLeftWidth: 3, borderLeftColor: '#F59E0B' },
+  noticeText: { color: '#94A3B8', fontSize: 10, lineHeight: 14 },
   chartBox: { backgroundColor: '#1E293B', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#334155' },
   barsContainer: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-around', height: 140 },
   barCol: { alignItems: 'center' },

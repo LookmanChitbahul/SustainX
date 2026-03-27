@@ -63,6 +63,7 @@ class TransactionResponse(BaseModel):
     tx_type: TxType
     timestamp: datetime
     status: TxStatus
+    block_id: Optional[int] = None
     class Config:
         from_attributes = True
 

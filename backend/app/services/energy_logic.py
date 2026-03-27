@@ -1,10 +1,35 @@
 from sqlalchemy.orm import Session
-from app.models.model import User, MeterReading, Wallet, Transaction, CoinType, TxType, TxStatus
+from app.models.model import User, MeterReading, Wallet, Transaction, CoinType, TxType, TxStatus, Block
 from app import ml_service
+import hashlib
+from datetime import datetime
+
+def mine_block(db: Session, data_summary: str) -> Block:
+    # Get the last block in the chain
+    last_block = db.query(Block).order_by(Block.id.desc()).first()
+    prev_hash = last_block.current_hash if last_block else "0" * 64 # Genesis hash
+
+    # Create current hash: SHA256(prev_hash + timestamp + summary)
+    now = datetime.utcnow()
+    raw_str = f"{prev_hash}{now.isoformat()}{data_summary}"
+    current_hash = hashlib.sha256(raw_str.encode()).hexdigest()
+
+    new_block = Block(
+        prev_hash=prev_hash,
+        current_hash=current_hash,
+        data_summary=data_summary,
+        timestamp=now
+    )
+    db.add(new_block)
+    db.flush() # Get the ID
+    return new_block
 
 def process_billing_cycle(db: Session, cycle: int):
     # Fetch all unprocessed meter readings for the cycle
     readings = db.query(MeterReading).filter(MeterReading.billing_cycle == cycle, MeterReading.processed == False).all()
+    
+    # Create a block for this cycle
+    block = mine_block(db, f"Billing Cycle {cycle} Processing")
     
     for reading in readings:
         if ml_service.check_anomaly(reading.import_kwh, reading.export_kwh):
@@ -28,18 +53,18 @@ def process_billing_cycle(db: Session, cycle: int):
             if net_energy > 0:
                 # Generate Yellow Coins for positive net contribution
                 wallet.yellow_balance += net_energy
-                tx = Transaction(receiver_id=user.user_id, coin_type=CoinType.Yellow, amount=net_energy, tx_type=TxType.Generation)
+                tx = Transaction(receiver_id=user.user_id, coin_type=CoinType.Yellow, amount=net_energy, tx_type=TxType.Generation, block_id=block.id)
                 db.add(tx)
             elif net_energy < 0:
                 # Generate Red Coins as standard liability
                 wallet.red_balance += abs(net_energy)
-                tx = Transaction(receiver_id=user.user_id, coin_type=CoinType.Red, amount=abs(net_energy), tx_type=TxType.Generation)
+                tx = Transaction(receiver_id=user.user_id, coin_type=CoinType.Red, amount=abs(net_energy), tx_type=TxType.Generation, block_id=block.id)
                 db.add(tx)
         
         elif user.user_type == "consumer":
             # Consumers typically only import, generating Red Coins
             wallet.red_balance += reading.import_kwh
-            tx = Transaction(receiver_id=user.user_id, coin_type=CoinType.Red, amount=reading.import_kwh, tx_type=TxType.Generation)
+            tx = Transaction(receiver_id=user.user_id, coin_type=CoinType.Red, amount=reading.import_kwh, tx_type=TxType.Generation, block_id=block.id)
             db.add(tx)
             
         reading.processed = True
@@ -63,8 +88,11 @@ def execute_transfer(db: Session, sender_id: str, receiver_id: str, amount: floa
     # Transformation: Yellow Coins turn into Green Coins upon transfer
     receiver_wallet.green_balance += amount
     
+    # Create a block for this transfer
+    block = mine_block(db, f"P2P Transfer: {sender_id} -> {receiver_id} ({amount} units)")
+    
     # Log Transaction
-    tx = Transaction(sender_id=sender_id, receiver_id=receiver_id, coin_type=CoinType.Green, amount=amount, tx_type=TxType.Transfer)
+    tx = Transaction(sender_id=sender_id, receiver_id=receiver_id, coin_type=CoinType.Green, amount=amount, tx_type=TxType.Transfer, block_id=block.id)
     db.add(tx)
     db.commit()
     db.refresh(tx)

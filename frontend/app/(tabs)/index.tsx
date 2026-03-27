@@ -37,6 +37,13 @@ export default function Dashboard() {
   useFocusEffect(
     useCallback(() => {
       if (selectedUser) loadWallet(selectedUser);
+      
+      // Real-time Poll (Every 3s for Demo Sync)
+      const interval = setInterval(() => {
+        if (selectedUser) loadWallet(selectedUser);
+      }, 3000);
+      
+      return () => clearInterval(interval);
     }, [selectedUser])
   );
 
@@ -61,7 +68,12 @@ export default function Dashboard() {
   return (
     <ScrollView style={s.container}>
       <View style={s.headerRow}>
-        <Text style={s.header}>⚡ SustainX Wallet</Text>
+        <View>
+          <Text style={s.header}>⚡ SustainX Wallet</Text>
+          <View style={s.demoBadge}>
+            <Text style={s.demoBadgeText}>DEMO MODE: 30s Billing Cycles</Text>
+          </View>
+        </View>
         <TouchableOpacity onPress={async () => { await storage.clear(); router.replace('/login'); }}>
           <Text style={s.logout}>Logout</Text>
         </TouchableOpacity>
@@ -106,21 +118,30 @@ export default function Dashboard() {
       {wallet ? (
         <>
           <View style={[s.card, { borderLeftColor: '#F59E0B' }]}>  
-            <Text style={s.cardLabel}>🌕 Yellow Coins</Text>
+            <View style={s.cardHeader}>
+              <Text style={s.cardLabel}>🌕 Yellow Coins</Text>
+              <Text style={s.murValue}>≈ {(wallet.yellow_balance * 4).toFixed(0)} MUR</Text>
+            </View>
             <Text style={[s.cardValue, { color: '#F59E0B' }]}>{wallet.yellow_balance.toFixed(2)}</Text>
-            <Text style={s.cardDesc}>Owner-generated solar energy</Text>
+            <Text style={s.cardDesc}>Export rate: 4 MUR/kWh (Feed-in)</Text>
           </View>
 
           <View style={[s.card, { borderLeftColor: '#22C55E' }]}>
-            <Text style={s.cardLabel}>🟢 Green Coins</Text>
+            <View style={s.cardHeader}>
+              <Text style={s.cardLabel}>🟢 Green Coins</Text>
+              <Text style={s.murValue}>≈ {(wallet.green_balance * 7).toFixed(0)} MUR</Text>
+            </View>
             <Text style={[s.cardValue, { color: '#22C55E' }]}>{wallet.green_balance.toFixed(2)}</Text>
-            <Text style={s.cardDesc}>System-available solar origin</Text>
+            <Text style={s.cardDesc}>P2P rate: ~7 MUR/kWh (Income)</Text>
           </View>
 
           <View style={[s.card, { borderLeftColor: '#EF4444' }]}>
-            <Text style={s.cardLabel}>🔴 Red Coins</Text>
+            <View style={s.cardHeader}>
+              <Text style={s.cardLabel}>🔴 Red Coins</Text>
+              <Text style={s.murValue}>≈ {(wallet.red_balance * 10).toFixed(0)} MUR</Text>
+            </View>
             <Text style={[s.cardValue, { color: '#EF4444' }]}>{wallet.red_balance.toFixed(2)}</Text>
-            <Text style={s.cardDesc}>Conventional consumption liability</Text>
+            <Text style={s.cardDesc}>Grid rate: 10 MUR/kWh (Debt)</Text>
           </View>
 
           <View style={s.totalCard}>
@@ -142,10 +163,12 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0F172A', padding: 16, paddingTop: 50 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F172A' },
   loadingText: { color: '#94A3B8', marginTop: 12, fontSize: 16 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  header: { fontSize: 28, fontWeight: '800', color: '#F8FAFC' },
-  logout: { color: '#EF4444', fontWeight: '700', fontSize: 14 },
-  label: { color: '#94A3B8', fontSize: 13, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
+  header: { fontSize: 26, fontWeight: '800', color: '#F8FAFC' },
+  demoBadge: { backgroundColor: '#1E3A5F', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginTop: 4 },
+  demoBadgeText: { color: '#93C5FD', fontSize: 10, fontWeight: '700' },
+  logout: { color: '#EF4444', fontWeight: '700', fontSize: 13, marginTop: 4 },
+  label: { color: '#94A3B8', fontSize: 11, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 },
   userRow: { flexDirection: 'row', marginBottom: 16 },
   userChip: { backgroundColor: '#1E293B', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12, marginRight: 8, borderWidth: 1, borderColor: '#334155', alignItems: 'center' },
   userChipActive: { backgroundColor: '#F59E0B', borderColor: '#F59E0B' },
@@ -159,10 +182,12 @@ const s = StyleSheet.create({
   badgeConsumer: { backgroundColor: '#1E293B' },
   badgeText: { color: '#FDE68A', fontWeight: '600', fontSize: 13 },
   meterId: { color: '#64748B', marginLeft: 12, fontSize: 12 },
-  card: { backgroundColor: '#1E293B', borderRadius: 16, padding: 20, marginBottom: 12, borderLeftWidth: 4 },
-  cardLabel: { color: '#94A3B8', fontWeight: '600', fontSize: 14, marginBottom: 4 },
+  card: { backgroundColor: '#1E293B', borderRadius: 16, padding: 18, marginBottom: 12, borderLeftWidth: 4 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
+  cardLabel: { color: '#94A3B8', fontWeight: '600', fontSize: 13 },
+  murValue: { color: '#F8FAFC', fontSize: 14, fontWeight: '700' },
   cardValue: { fontSize: 36, fontWeight: '800' },
-  cardDesc: { color: '#475569', fontSize: 11, marginTop: 4 },
+  cardDesc: { color: '#475569', fontSize: 10, marginTop: 0 },
   totalCard: { backgroundColor: '#1E293B', borderRadius: 16, padding: 20, marginBottom: 40, borderWidth: 1, borderColor: '#334155', alignItems: 'center' },
   totalLabel: { color: '#94A3B8', fontWeight: '600', fontSize: 13 },
   totalValue: { color: '#F8FAFC', fontSize: 32, fontWeight: '800', marginTop: 4 },

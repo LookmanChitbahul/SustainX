@@ -75,19 +75,29 @@ def is_anomaly(import_kwh: float, export_kwh: float) -> bool:
 
 def confidence_report(import_kwh: float, export_kwh: float) -> dict:
     """Returns a full confidence breakdown for the API and UI."""
-    votes = [
-        _iso_check(import_kwh, export_kwh),
-        _zscore_check(import_kwh, export_kwh),
-        _lof_check(import_kwh, export_kwh),
-    ]
-    anomaly_votes = sum(votes)
-    return {
-        "is_anomaly": anomaly_votes >= 2,
-        "normal_confidence_pct": round((1 - anomaly_votes / 3) * 100, 1),
-        "models": {
-            "isolation_forest": "anomaly" if votes[0] else "normal",
-            "z_score": "anomaly" if votes[1] else "normal",
-            "local_outlier_factor": "anomaly" if votes[2] else "normal",
-        },
-        "agreement": f"{3 - anomaly_votes}/3 models say normal",
-    }
+    try:
+        iso_val = bool(_iso_check(import_kwh, export_kwh))
+        z_val = bool(_zscore_check(import_kwh, export_kwh))
+        lof_val = bool(_lof_check(import_kwh, export_kwh))
+        votes = [iso_val, z_val, lof_val]
+        anomaly_votes = int(sum(votes))
+        
+        return {
+            "is_anomaly": bool(anomaly_votes >= 2),
+            "normal_confidence_pct": float(round((1 - float(anomaly_votes) / 3.0) * 100.0, 1)),
+            "models": {
+                "isolation_forest": "anomaly" if iso_val else "normal",
+                "z_score": "anomaly" if z_val else "normal",
+                "local_outlier_factor": "anomaly" if lof_val else "normal",
+            },
+            "agreement": f"{3 - anomaly_votes}/3 models say normal",
+        }
+    except Exception as e:
+        logger.error(f"ML Error: {str(e)}")
+        return {
+            "is_anomaly": False,
+            "error": str(e),
+            "normal_confidence_pct": 0.0,
+            "models": {},
+            "agreement": "Error in ML processing"
+        }
