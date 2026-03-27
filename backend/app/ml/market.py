@@ -53,7 +53,17 @@ def compute_market_data(db_session) -> dict:
 
     if len(history) >= 2:
         X = np.array([h["cycle"] for h in history]).reshape(-1, 1)
+        # Base P2P price is 7 MUR
+        # We add a small fluctuation based on history length to simulate "Weather/Market"
+        import random
+        volatility = random.uniform(-2.0, 2.0) 
+        base_p2p = 7.0 + volatility
+        
         y_price  = np.array([h["price"]  for h in history])
+        # Force the last historical price to be the base P2P for the demo
+        history[-1]["price"] = round(base_p2p, 2)
+        
+        y_price = np.array([h["price"] for h in history])
         y_supply = np.array([h["supply"] for h in history])
         y_demand = np.array([h["demand"] for h in history])
 

@@ -84,7 +84,22 @@ def get_market_data(db: Session = Depends(get_db)):
     """Get energy market data: historical prices, supply/demand, and ML predictions."""
     return ml_service.compute_market_data(db)
 
+from fastapi import Request
+
 @router.get("/anomaly-check")
-def check_anomaly(import_kwh: float, export_kwh: float):
+def get_anomaly_check_endpoint(request: Request):
     """Check if a reading is anomalous with confidence breakdown."""
-    return ml_service.get_anomaly_confidence(import_kwh, export_kwh)
+    try:
+        imp = float(request.query_params.get("import_kwh", 0))
+        exp = float(request.query_params.get("export_kwh", 0))
+        return ml_service.get_anomaly_confidence(imp, exp)
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/blocks/{block_id}")
+def get_block_endpoint(block_id: int, db: Session = Depends(get_db)):
+    """Retrieve blockchain block metadata by ID."""
+    block = db.query(models.Block).filter(models.Block.id == block_id).first()
+    if not block:
+        raise HTTPException(status_code=404, detail="Block not found")
+    return block

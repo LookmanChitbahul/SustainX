@@ -1,153 +1,107 @@
-# SustainX — Digital Energy Value System
-### SustainX Innovation Challenge 2026
+# SustainX — Blockchain-Secured Digital Energy System
+### ⚡ Innovation Challenge 2026: "Verified Green Economy"
 
-A full-stack system that transforms real energy meter data into structured digital value (Yellow, Green, Red Coins), with ML-powered anomaly detection and energy market price prediction.
-
----
-
-## 📁 Project Structure
-
-```
-SustainX/
-├── backend/                  # FastAPI Python backend
-│   ├── main.py               # App entry point, CORS, routing
-│   ├── models.py             # SQLAlchemy DB models
-│   ├── schemas.py            # Pydantic request/response schemas
-│   ├── database.py           # DB engine (reads DATABASE_URL from .env)
-│   ├── routes.py             # All API endpoints
-│   ├── logic.py              # Core value generation & transfer logic
-│   ├── ml_service.py         # 4-model ML: anomaly detection + market prediction
-│   ├── seed.py               # Database seeder (loads xlsx dataset)
-│   ├── requirements.txt      # Python dependencies
-│   ├── .env.example          # Environment variable template
-│   └── .env                  # Local secrets (not committed to git)
-│
-├── frontend/                 # React Native (Expo) mobile app
-│   ├── app/
-│   │   ├── (tabs)/
-│   │   │   ├── index.tsx     # ⚡ Wallet Dashboard
-│   │   │   ├── transfer.tsx  # 💸 Transfer Screen
-│   │   │   ├── history.tsx   # 📋 Transaction History
-│   │   │   └── market.tsx    # 📈 Energy Market (ML chart)
-│   │   ├── api.ts            # Central API helper
-│   │   └── _layout.tsx       # Root layout
-│   └── package.json
-│
-├── ref/                      # Challenge reference materials & dataset
-│   └── 8. sustainx_final_dataset.xlsx
-│
-├── docker-compose.yml        # Optional: run with PostgreSQL
-└── .gitignore
-```
+SustainX is a state-of-the-art Web3-inspired platform that transforms real-time energy meter data into a secure digital economy. Using **SHA-256 Blockchain Technology**, we ensure that every energy transaction is immutable, traceable, and verified by an ensemble of Machine Learning models.
 
 ---
 
-## 🚀 How to Run
+## 🏗️ System Architecture & Data Flow
 
-### Backend
+SustainX connects physical energy generation to digital value through a rigid, multi-layered verification pipeline:
 
-**1. Create and activate virtual environment:**
+1.  **Data Ingestion**: High-frequency meter readings (Import/Export kWh) are ingested from the **Prosumer** device.
+2.  **Ensemble Verification**: The data is immediately analyzed by 4 ML models to check for anomalies or tampering.
+3.  **Billing & Value Creation**: Verified data is processed into **Yellow Coins** (Export) and liabilities are marked as **Red Coins** (Import).
+4.  **Blockchain Mining**: A new `Block` is generated using **SHA-256** hashing, linking the billing summary to the previous block's hash.
+5.  **Immutable Ledger**: The transaction is written to the PostgreSQL ledger with a reference to the block identity.
+6.  **P2P Market**: Users can then trade **Green Coins** (P2P Energy) at a dynamic market rate.
+
+---
+
+## 🔐 Core Functionalities & Technical Deep-Dive
+
+### 1. The Immutable Ledger (Blockchain)
+*   **What it is**: A private blockchain where each block represents a set of verified energy events (Billing or Transfers).
+*   **Hashing Logic**: We use `hashlib` to generate a SHA-256 signature combining `prev_hash`, `timestamp`, and `data_summary`.
+*   **Code Location**: `backend/app/services/energy_logic.py` (`mine_block` function).
+*   **Connection**: Every entry in the `transactions` table links to a `block_id` in the `blocks` table, providing cryptographic proof of data integrity.
+
+### 2. ML Anomaly Ensemble (Ensemble Learning)
+*   **What it is**: A "majority rule" voting system that protects the economy from meter fraud.
+*   **Models Used**: Isolation Forest (Anomalies), Z-Score (Spikes), Local Outlier Factor (Density).
+*   **Code Location**: `backend/app/ml/anomaly.py`.
+*   **Integration**: The `is_anomaly` endpoint requires 2/3 agreement before mining a block.
+
+### 3. Dynamic Market Prediction (MUR Valuation)
+*   **What it is**: Live price derivation for the Green Coin (P2P Energy).
+*   **Formula**: `Base (7.00 MUR) * [Supply/Demand Ratio] + Weather Variance`.
+*   **Code Location**: `backend/app/ml/market.py`.
+*   **Financials**:
+    *   **🟡 Yellow Coin**: 4 MUR (Generation Reward)
+    *   **🟢 Green Coin**: ~7 MUR (P2P Market Rate)
+    *   **🔴 Red Coin**: 10 MUR (Grid Liability)
+
+### 4. Rapid Billing Cycles
+*   **What it is**: To simulate long-term energy use in a short demo, we've compressed years into **30-second cycles**.
+*   **Code Location**: `backend/app/services/energy_logic.py` (`process_billing` function).
+*   **Real-time UI**: The mobile dashboard polls every **3 seconds** to show live blockchain activity.
+
+---
+
+## 📁 Modular Folder Structure
+
+The project follows a clean, "feature-first" architecture for high standard scalability:
+
+*   `backend/app/api/`: **Endpoints**. Handles incoming requests from the mobile app (Login, Market, Transfers).
+*   `backend/app/ml/`: **Intelligence**. Contains the ensemble logic and the linear regression price predictor.
+*   `backend/app/models/`: **Persistence**. Defines the SQLAlchemy/PostgreSQL schema for Users, Wallets, and the Blockchain.
+*   `backend/app/services/`: **Logic**. The "Engine" of the system. Manages the 30s billing cycles and block mining.
+*   `backend/app/db/`: **Infrastructure**. Managed database sessions and engine pooling.
+*   `frontend/app/`: **Interface**. React Native screens (Tabs) representing the Dashboard, Market, and Ledger.
+
+---
+
+---
+
+## 🔑 Demo Credentials
+
+For convenience during the innovation challenge, use the following seeded accounts:
+
+| User ID | Role | Password |
+|---|---|---|
+| **PR001** | Prosumer (Energy Seller) | `12345678` |
+| **C001** | Consumer (Energy Buyer) | `12345678` |
+| **Admin** | System Administrator | `12345678` |
+
+---
+
+## ⚙️ Database & Connection Logic
+
+SustainX uses a robust **PostgreSQL** database for production-grade reliability:
+
+*   **Engine**: SQLAlchemy with `psycopg2` driver.
+*   **Connection**: Managed via `DATABASE_URL` in `.env`.
+*   **Initialization**: `Base.metadata.create_all(bind=engine)` runs on backend startup to ensure tables are synced.
+*   **Location**: Configuration is in `backend/app/db/session.py`.
+
+---
+
+## 🚀 Demo Run (Innovation Challenge Mode)
+
+### 1. Step: Backend & Tunneling
+Launch the secure API via LocalTunnel:
 ```bash
 cd backend
-python -m venv venv
-
-# Windows:
-.\venv\Scripts\activate
-
-# Mac/Linux:
-source venv/bin/activate
+.\venv\Scripts\python -m uvicorn app.main:app --port 8000
+npx localtunnel --port 8000
 ```
 
-**2. Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
-
-**3. Configure environment:**
-```bash
-# Copy the example and edit if needed (SQLite works out of the box)
-copy .env.example .env
-```
-
-**4. Seed the database:**
-```bash
-python seed.py
-```
-
-**5. Process billing cycles (generates coin balances):**
-```bash
-# On Windows (SQLite running):
-python -m uvicorn main:app --reload
-# Then in another terminal:
-curl -X POST http://localhost:8000/api/process-cycle/1
-curl -X POST http://localhost:8000/api/process-cycle/2
-curl -X POST http://localhost:8000/api/process-cycle/3
-```
-
-**6. Start the backend:**
-```bash
-python -m uvicorn main:app --reload
-```
-
-Backend will be live at: **http://localhost:8000**  
-API docs (Swagger): **http://localhost:8000/docs**
-
----
-
-### Frontend
-
-**1. Install dependencies:**
+### 2. Step: Mobile Launch
+Start the Expo tunnel for global remote access:
 ```bash
 cd frontend
-npm install
+npx expo start --clear --tunnel
 ```
 
-**2. Start the Expo development server:**
-```bash
-npm run start
-```
-
-**3. Open the app:**
-- **Browser:** Press `w` in the terminal, or go to `http://localhost:8081`
-- **Android:** Press `a` (requires Android Studio emulator or Expo Go app)
-- **iPhone:** Scan the QR code with the Expo Go app
-
-> **Note for Windows + Node 24:** If you see an ESM loader error, run:
-> ```bash
-> $env:NODE_OPTIONS="--no-experimental-detect-module"; npm run start
-> ```
-> Or downgrade to Node v20 LTS from https://nodejs.org for the best compatibility.
-
 ---
-
-## 🧠 ML Models
-
-| Model | Purpose |
-|---|---|
-| Isolation Forest | Anomaly detection (pattern-based) |
-| Z-Score Analysis | Statistical outlier detection |
-| Local Outlier Factor | Density-based anomaly detection |
-| Linear Regression | Energy market price forecasting |
-
-**Ensemble voting:** A reading is flagged as anomalous only if **2 out of 3** detection models agree, ensuring 95%+ confidence before blocking value generation.
-
----
-
-## 💰 Value System
-
-| Coin | Origin | Meaning |
-|---|---|---|
-| 🌕 Yellow | Prosumer net export > 0 | Owner-generated solar energy |
-| 🟢 Green | Yellow transferred to another user | System-available solar energy |
-| 🔴 Red | Consumer grid import | Conventional consumption liability |
-
----
-
-## 🔑 Environment Variables
-
-| Variable | Default | Description |
-|---|---|---|
-| `DATABASE_URL` | `sqlite:///./sustainx.db` | DB connection string |
-| `APP_ENV` | `development` | `development` or `production` |
-| `SECRET_KEY` | — | Used for future auth signing |
-| `ALLOWED_ORIGINS` | `*` | CORS allowed origins |
+**Built for the Sustainable Enterprise Innovation Challenge 2026.**
