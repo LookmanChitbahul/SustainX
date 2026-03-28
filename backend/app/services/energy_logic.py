@@ -72,27 +72,57 @@ def process_billing_cycle(db: Session, cycle: int):
     db.commit()
 
 def execute_transfer(db: Session, sender_id: str, receiver_id: str, amount: float):
-    sender_wallet = db.query(Wallet).filter(Wallet.user_id == sender_id).first()
-    receiver_wallet = db.query(Wallet).filter(Wallet.user_id == receiver_id).first()
+    sender = db.query(User).filter(User.user_id == sender_id).first()
+    receiver = db.query(User).filter(User.user_id == receiver_id).first()
     
-    if not sender_wallet or not receiver_wallet:
-        raise ValueError("Sender or Receiver wallet not found")
+    if not sender or not receiver:
+        raise ValueError("Sender or Receiver not found")
         
-    # Validation: Sender must have enough Yellow Coins
-    if sender_wallet.yellow_balance < amount:
-        raise ValueError("Insufficient Yellow Coin balance")
-        
-    # Deduct from Sender
-    sender_wallet.yellow_balance -= amount
+    if sender_id == receiver_id:
+        raise ValueError("Cannot transfer to yourself")
+
+    sender_wallet = sender.wallet
+    receiver_wallet = receiver.wallet
     
-    # Transformation: Yellow Coins turn into Green Coins upon transfer
-    receiver_wallet.green_balance += amount
+    # ── RULE 1: Prosumer -> Consumer (Yellow -> Green) ────────
+    if sender.user_type == "prosumer":
+        if receiver.user_type != "consumer":
+            raise ValueError("Prosumers can only transfer to Consumers")
+        
+        if sender_wallet.yellow_balance < amount:
+            raise ValueError(f"Insufficient Yellow balance ({sender_wallet.yellow_balance})")
+            
+        sender_wallet.yellow_balance -= amount
+        receiver_wallet.green_balance += amount
+        msg = f"Prosumer Export ({amount} Yellow) -> Market Supply ({amount} Green)"
+
+    # ── RULE 2: Consumer -> Consumer (Green -> Green) ─────────
+    elif sender.user_type == "consumer":
+        if receiver.user_type != "consumer":
+            raise ValueError("Consumers can only transfer to other Consumers")
+        
+        if sender_wallet.green_balance < amount:
+            raise ValueError(f"Insufficient Green balance ({sender_wallet.green_balance})")
+            
+        sender_wallet.green_balance -= amount
+        receiver_wallet.green_balance += amount
+        msg = f"P2P Green Transfer: {amount} units"
+
+    else:
+        raise ValueError(f"User type {sender.user_type} cannot initiate transfers")
     
     # Create a block for this transfer
-    block = mine_block(db, f"P2P Transfer: {sender_id} -> {receiver_id} ({amount} units)")
+    block = mine_block(db, f"TX: {sender_id} -> {receiver_id} | {msg}")
     
     # Log Transaction
-    tx = Transaction(sender_id=sender_id, receiver_id=receiver_id, coin_type=CoinType.Green, amount=amount, tx_type=TxType.Transfer, block_id=block.id)
+    tx = Transaction(
+        sender_id=sender_id, 
+        receiver_id=receiver_id, 
+        coin_type=CoinType.Green, 
+        amount=amount, 
+        tx_type=TxType.Transfer, 
+        block_id=block.id
+    )
     db.add(tx)
     db.commit()
     db.refresh(tx)

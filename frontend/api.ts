@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 
-const ANDROID_HOST = 'nine-nights-brush.loca.lt'; // Public LocalTunnel host
+// const ANDROID_HOST = 'nine-nights-brush.loca.lt'; 
+const ANDROID_HOST = 'honest-hornets-ask.loca.lt';
 const WEB_HOST = 'localhost:8000';              // Local web
 // const EMULATOR_HOST = '10.0.2.2:8000'; // Alternative emulator loopback
 
@@ -9,7 +10,7 @@ function getBaseUrl(): string {
   const host = isWeb ? WEB_HOST : ANDROID_HOST;
   const protocol = (host.includes('loca.lt') || host.includes('ngrok')) ? 'https' : 'http';
   const url = `${protocol}://${host}/api`;
-  
+
   if (__DEV__) {
     console.log(`[API] Platform: ${Platform.OS}, Connecting to: ${url}`);
   }
@@ -17,30 +18,30 @@ function getBaseUrl(): string {
 }
 
 export async function login(userId: string, password: string): Promise<any> {
-    const url = `${getBaseUrl()}/login`;
-    try {
-        const res = await fetch(url, {
-            method: 'POST',
-            mode: 'cors',
-            cache: 'no-cache',
-            headers: { 
-                'Content-Type': 'application/json',
-                'bypass-tunnel-reminder': 'true'
-            },
-            body: JSON.stringify({ user_id: userId, password }),
-        });
-        
-        if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(data.detail || `Login failed (${res.status})`);
-        }
-        return res.json();
-    } catch (e: any) {
-        console.error(`[API ERROR] ${url}:`, e.message);
-        throw new Error(e.message === 'Network request failed' 
-            ? 'Network Error: Backend unreachable. Check if server is running on port 8000.' 
-            : e.message);
+  const url = `${getBaseUrl()}/login`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json',
+        'bypass-tunnel-reminder': 'true'
+      },
+      body: JSON.stringify({ user_id: userId, password }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.detail || `Login failed (${res.status})`);
     }
+    return res.json();
+  } catch (e: any) {
+    console.error(`[API ERROR] ${url}:`, e.message);
+    throw new Error(e.message === 'Network request failed'
+      ? 'Network Error: Backend unreachable. Check if server is running on port 8000.'
+      : e.message);
+  }
 }
 
 export async function getUsers() {
@@ -78,7 +79,7 @@ export async function getTransactions(userId: string) {
 export async function postTransfer(senderId: string, receiverId: string, amount: number) {
   const res = await fetch(`${getBaseUrl()}/transfer`, {
     method: 'POST',
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       'bypass-tunnel-reminder': 'true'
     },

@@ -1,33 +1,42 @@
 import os
+import subprocess
+import time
 import sys
-import uvicorn
-from pyngrok import ngrok
-from dotenv import load_dotenv
 
 def start_demo():
-    load_dotenv()
-    
-    # 1. Setup ngrok
     print("\n" + "="*50)
-    print("🚀 SUSTAINX INNOVATION CHALLENGE — DEMO RUNNER")
+    print("🚀 SUSTAINX INNOVATION CHALLENGE — STABLE DEMO RUNNER")
     print("="*50)
+    print("💡 Switching to LocalTunnel to avoid Ngrok session conflicts with Expo.")
     
+    # 1. Start LocalTunnel in a separate process
+    # We use npx to ensure localtunnel is available
+    print("\n🌍 STARTING REMOTE ACCESS TUNNEL...")
+    lt_proc = subprocess.Popen(
+        ["npx", "localtunnel", "--port", "8000"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        shell=True
+    )
+    
+    # Give it a moment to generate the URL
+    time.sleep(3)
+    
+    print("\n⚠️  ACTION REQUIRED:")
+    print("1. Find your 'your url is: ...' line below.")
+    print("2. Copy the hostname (e.g., 'funny-cats-jump.loca.lt').")
+    print("3. Update 'frontend/api.ts' -> ANDROID_HOST with this value.")
+    print("="*50 + "\n")
+    
+    # 2. Run Uvicorn in the main thread
     try:
-        # Open a tunnel on port 8000
-        ngrok.set_auth_token("3BXjRyRDJUatgjpDPXdecIJxeSk_4nVJqe5oHkeGmUQV77ZH")
-        public_url = ngrok.connect(8000).public_url
-        print(f"\n🌍 REMOTE ACCESS ENABLED!")
-        print(f"🔗 Public URL: {public_url}")
-        print(f"\n⚠️  ACTION REQUIRED:")
-        print(f"Update 'frontend/api.ts' ANDROID_HOST with: {public_url.replace('https://', '')}")
-        print("="*50 + "\n")
-        
-    except Exception as e:
-        print(f"❌ ngrok failed: {e}")
-        print("💡 Hint: Run 'ngrok config add-authtoken <your_token>' in your terminal.\n")
-
-    # 2. Run Uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+        import uvicorn
+        uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    except KeyboardInterrupt:
+        print("\nStopping demo...")
+    finally:
+        lt_proc.terminate()
 
 if __name__ == "__main__":
     start_demo()
