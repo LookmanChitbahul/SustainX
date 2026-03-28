@@ -26,6 +26,10 @@ class TransferRequest(BaseModel):
     receiver_id: str
     amount: float
 
+class SettleRequest(BaseModel):
+    user_id: str
+    amount: float
+
 class WalletResponse(BaseModel):
     yellow_balance: float
     green_balance: float

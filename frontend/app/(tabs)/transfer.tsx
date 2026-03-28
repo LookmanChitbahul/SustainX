@@ -91,6 +91,17 @@ export default function Transfer() {
   const filteredReceivers = getFilteredReceivers();
   const isProsumer = currentUser?.user_type === 'prosumer';
 
+  if (currentUser?.is_admin) {
+    return (
+      <View style={[s.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ fontSize: 28, fontWeight: '800', color: '#F59E0B', marginBottom: 12 }}>🔒 Admin View</Text>
+        <Text style={{ color: '#94A3B8', textAlign: 'center', fontSize: 16, lineHeight: 24, paddingHorizontal: 20 }}>
+          Admins have read-only permissions across user profiles to monitor the ecosystem. Standard transaction functionality is disabled.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={s.container}>
       <Text style={s.header}>💸 Send Value</Text>
@@ -129,7 +140,7 @@ export default function Transfer() {
       )}
 
       {/* Amount Input */}
-      <Text style={s.label}>Amount ({isProsumer ? 'Yellow' : 'Green'} Units)</Text>
+      <Text style={s.label}>Amount</Text>
       <TextInput
         style={s.input}
         placeholder="0.00"

@@ -127,3 +127,37 @@ def execute_transfer(db: Session, sender_id: str, receiver_id: str, amount: floa
     db.commit()
     db.refresh(tx)
     return tx
+
+def settle_debt(db: Session, user_id: str, amount: float):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise ValueError("User not found")
+        
+    wallet = user.wallet
+    if user.user_type != "consumer":
+        raise ValueError("Only Consumers can settle debt with green coins")
+        
+    if wallet.green_balance < amount:
+        raise ValueError(f"Insufficient Green Coins ({wallet.green_balance})")
+    
+    if wallet.red_balance < amount:
+        raise ValueError(f"Amount exceeds current Red Coin debt ({wallet.red_balance})")
+        
+    wallet.green_balance -= amount
+    wallet.red_balance -= amount
+    
+    msg = f"Debt Settled: {amount} Green -> {amount} Red"
+    block = mine_block(db, f"TX: {user_id} Settles Debt | {msg}")
+    
+    tx = Transaction(
+        sender_id=user_id,
+        receiver_id=user_id,
+        coin_type=CoinType.Red,
+        amount=-amount,
+        tx_type=TxType.Transfer,
+        block_id=block.id
+    )
+    db.add(tx)
+    db.commit()
+    db.refresh(tx)
+    return tx

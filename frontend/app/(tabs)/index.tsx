@@ -1,7 +1,7 @@
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { getUsers, getUserWithWallet } from '../../api';
+import { getUsers, getUserWithWallet, postSettle } from '../../api';
 import storage from '../../storage';
 import { useRouter } from 'expo-router';
 
@@ -15,6 +15,8 @@ export default function Dashboard() {
   const [userType, setUserType] = useState<string>('');
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [loading, setLoading] = useState(true);
+  const [settleAmount, setSettleAmount] = useState('');
+  const [settling, setSettling] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -54,6 +56,21 @@ export default function Dashboard() {
         setUserType(data.user_type);
       })
       .catch(() => setWallet(null));
+  };
+
+  const handleSettleDebt = async () => {
+    if (!settleAmount || parseFloat(settleAmount) <= 0) return;
+    setSettling(true);
+    try {
+      await postSettle(selectedUser, parseFloat(settleAmount));
+      setSettleAmount('');
+      loadWallet(selectedUser);
+      alert('Debt successfully settled!');
+    } catch (e: any) {
+      alert(e.message || 'Settlement failed');
+    } finally {
+      setSettling(false);
+    }
   };
 
   if (loading) {
@@ -142,6 +159,25 @@ export default function Dashboard() {
             </View>
             <Text style={[s.cardValue, { color: '#EF4444' }]}>{wallet.red_balance.toFixed(2)}</Text>
             <Text style={s.cardDesc}>Grid rate: 10 MUR/kWh (Debt)</Text>
+            
+            {userType === 'consumer' && wallet.red_balance > 0 && !user?.is_admin && (
+              <View style={s.settleBox}>
+                <Text style={s.settleTitle}>Pay Grid Debt with Green Coins</Text>
+                <View style={s.settleRow}>
+                  <TextInput
+                    style={s.settleInput}
+                    placeholder="Amount to settle"
+                    placeholderTextColor="#475569"
+                    keyboardType="numeric"
+                    value={settleAmount}
+                    onChangeText={setSettleAmount}
+                  />
+                  <TouchableOpacity style={s.settleBtn} onPress={handleSettleDebt} disabled={settling}>
+                    {settling ? <ActivityIndicator size="small" color="#0F172A" /> : <Text style={s.settleBtnText}>Settle</Text>}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </View>
 
           <View style={s.totalCard}>
@@ -193,4 +229,10 @@ const s = StyleSheet.create({
   totalValue: { color: '#F8FAFC', fontSize: 32, fontWeight: '800', marginTop: 4 },
   totalSub: { color: '#475569', fontSize: 11, marginTop: 4 },
   noData: { color: '#64748B', textAlign: 'center', marginTop: 40, fontSize: 14 },
+  settleBox: { marginTop: 16, borderTopWidth: 1, borderColor: '#334155', paddingTop: 16 },
+  settleTitle: { color: '#94A3B8', fontSize: 12, marginBottom: 8 },
+  settleRow: { flexDirection: 'row', alignItems: 'center' },
+  settleInput: { flex: 1, backgroundColor: '#0F172A', borderRadius: 8, padding: 10, color: '#F8FAFC', borderWidth: 1, borderColor: '#334155', marginRight: 10 },
+  settleBtn: { backgroundColor: '#22C55E', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, justifyContent: 'center' },
+  settleBtnText: { color: '#052E16', fontWeight: 'bold' },
 });

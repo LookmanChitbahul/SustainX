@@ -105,3 +105,17 @@ export async function checkAnomaly(importKwh: number, exportKwh: number) {
   if (!res.ok) throw new Error('Failed to check anomaly');
   return res.json();
 }
+
+export async function postSettle(userId: string, amount: number) {
+  const res = await fetch(`${getBaseUrl()}/settle`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'bypass-tunnel-reminder': 'true'
+    },
+    body: JSON.stringify({ user_id: userId, amount }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Settlement failed');
+  return data;
+}
