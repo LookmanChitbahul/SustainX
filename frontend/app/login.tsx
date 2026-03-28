@@ -62,7 +62,13 @@ export default function LoginScreen() {
           {loading ? <ActivityIndicator color="#0F172A" /> : <Text style={s.btnText}>Login</Text>}
         </TouchableOpacity>
 
-        <Text style={s.hint}>Demo mode: Case-sensitive User IDs (U001-U015) or 'admin'. Password is '12345678'.</Text>
+        <View style={s.demoBox}>
+          <Text style={s.demoTitle}>🏆 Demo Credentials</Text>
+          <Text style={s.demoText}>Admin ID: admin</Text>
+          <Text style={s.demoText}>Prosumer ID: PR001</Text>
+          <Text style={s.demoText}>Consumer ID: CN001</Text>
+          <Text style={s.demoText}>(Password for all is 12345678)</Text>
+        </View>
       </View>
     </View>
   );
@@ -78,5 +84,7 @@ const s = StyleSheet.create({
   input: { backgroundColor: '#0F172A', borderRadius: 12, padding: 16, color: '#F8FAFC', fontSize: 16, marginBottom: 20, borderWidth: 1, borderColor: '#334155' },
   btn: { backgroundColor: '#F59E0B', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 10 },
   btnText: { color: '#0F172A', fontWeight: '800', fontSize: 18 },
-  hint: { color: '#475569', fontSize: 11, textAlign: 'center', marginTop: 24, lineHeight: 16 },
+  demoBox: { backgroundColor: 'rgba(245, 158, 11, 0.1)', padding: 16, borderRadius: 12, marginTop: 24, borderWidth: 1, borderColor: 'rgba(245, 158, 11, 0.3)' },
+  demoTitle: { color: '#F59E0B', fontWeight: 'bold', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, textAlign: 'center' },
+  demoText: { color: '#CBD5E1', fontSize: 14, textAlign: 'center', marginVertical: 3 },
 });

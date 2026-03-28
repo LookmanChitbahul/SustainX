@@ -41,7 +41,23 @@ SustainX connects physical energy generation to digital value through a rigid, m
     *   **🟢 Green Coin**: ~7 MUR (P2P Market Rate)
     *   **🔴 Red Coin**: 10 MUR (Grid Liability)
 
-### 4. Rapid Billing Cycles
+### 4. 👥 The Digital Energy Social Contract (Prosumer & Consumer)
+
+SustainX defines two distinct economic roles that interact on the blockchain to create a balanced green economy:
+
+#### **A. The Prosumer (Producer + Consumer)**
+*   **Identity**: Households or businesses with renewable installations (Solar/Wind).
+*   **The "Yellow" Engine**: For every kWh exported to the grid, the Prosumer is minted **Yellow Coins**.
+*   **The Sales Role**: Prosumers act as the **Suppliers** of the economy. They transfer their Yellow Coins to the "Market" (Consumers).
+*   **Value Transformation**: When a Prosumer transfers value to a Consumer, the **Yellow Coins convert to Green Coins**. This represents energy leaving a private site and becoming part of the community supply.
+
+#### **B. The Consumer (Buyer / Peer)**
+*   **Identity**: Standard households importing energy from the grid.
+*   **The "Red" Liability**: Every kWh imported generates **Red Coins**, which represent a financial liability (Grid Debt).
+*   **The P2P Trader**: Consumers "Buy" Green energy to settle their accounts. They can also trade **Green Coins** with each other.
+*   **Value Consistency**: Consumer-to-Consumer transfers remain **Green**. This represents a peer-to-peer circulation of verified renewable energy credits within a local neighborhood.
+
+### 5. ⏲️ Rapid Billing Cycles (30s)
 *   **What it is**: To simulate long-term energy use in a short demo, we've compressed years into **30-second cycles**.
 *   **Code Location**: `backend/app/services/energy_logic.py` (`process_billing` function).
 *   **Real-time UI**: The mobile dashboard polls every **3 seconds** to show live blockchain activity.
@@ -86,18 +102,28 @@ SustainX uses a robust **PostgreSQL** database for production-grade reliability:
 
 ---
 
-## 🚀 Demo Run (Innovation Challenge Mode)
+---
 
-### 1. Step: Backend & Tunneling
-Launch the secure API via LocalTunnel:
+## 🚀 Demo Run (Manual Terminal Mode)
+
+To ensure high-performance remote access for **all 5 team members**, follow this "3-Terminal Setup" starting the backend and frontend separately:
+
+### Terminal 1: Backend Server
+Start the core logic and database listener:
 ```bash
 cd backend
-.\venv\Scripts\python -m uvicorn app.main:app --port 8000
-npx localtunnel --port 8000
+.\venv\Scripts\python -m uvicorn app.main:app --port 8000 --reload
 ```
 
-### 2. Step: Mobile Launch
-Start the Expo tunnel for global remote access:
+### Terminal 2: Backend Tunnel (Remote Access)
+Enable the bridge to allow mobile apps to reach the backend from anywhere:
+```bash
+npx localtunnel --port 8000
+```
+**Wait for the URL** (e.g., `funny-cats-jump.loca.lt`). Copy the hostname and paste it into **`frontend/api.ts`** as `ANDROID_HOST`.
+
+### Terminal 3: Mobile Launch (Expo)
+Scan this QR code with your 5 team members to join the live energy ledger:
 ```bash
 cd frontend
 npx expo start --clear --tunnel

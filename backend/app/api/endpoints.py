@@ -11,8 +11,10 @@ router = APIRouter()
 
 @router.post("/login", response_model=schemas.UserResponse)
 def login(request: schemas.UserLogin, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.user_id == request.user_id).first()
-    if not user or user.password != request.password:
+    from sqlalchemy import func
+    clean_id = request.user_id.strip()
+    user = db.query(models.User).filter(func.lower(models.User.user_id) == clean_id.lower()).first()
+    if not user or user.password != request.password.strip():
         raise HTTPException(status_code=401, detail="Invalid User ID or Password")
     return user
 

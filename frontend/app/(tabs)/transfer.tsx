@@ -31,9 +31,13 @@ export default function Transfer() {
 
   useEffect(() => {
     if (senderId) {
-      getWallet(senderId).then((w: any) => setSenderBalance(w.yellow_balance)).catch(() => setSenderBalance(null));
+      getWallet(senderId).then((w: any) => {
+        // prosumers send Yellow, Consumers send Green
+        const isProsumer = currentUser?.user_type === 'prosumer';
+        setSenderBalance(isProsumer ? w.yellow_balance : w.green_balance);
+      }).catch(() => setSenderBalance(null));
     }
-  }, [senderId]);
+  }, [senderId, currentUser]);
 
   const handleTransfer = async () => {
     if (!senderId || !receiverId || !amount) {
@@ -47,11 +51,20 @@ export default function Transfer() {
     setLoading(true);
     setSuccess(null);
     try {
-      const tx = await postTransfer(senderId, receiverId, parseFloat(amount));
-      setSuccess(`✅ Transferred ${amount} Yellow → Green Coins to ${receiverId}`);
+      const isProsumer = currentUser?.user_type === 'prosumer';
+      const amtNum = parseFloat(amount);
+      const tx = await postTransfer(senderId, receiverId, amtNum);
+      
+      const msg = isProsumer 
+        ? `✅ Transferred ${amount} Yellow → Green Coins to ${receiverId}`
+        : `✅ Transferred ${amount} Green → Green Coins to ${receiverId}`;
+        
+      setSuccess(msg);
       setAmount('');
       // Refresh sender balance
-      getWallet(senderId).then((w: any) => setSenderBalance(w.yellow_balance)).catch(() => {});
+      getWallet(senderId).then((w: any) => {
+        setSenderBalance(isProsumer ? w.yellow_balance : w.green_balance);
+      }).catch(() => {});
     } catch (e: any) {
       Alert.alert('Transfer Failed', e.message || 'Unknown error');
     } finally {
@@ -59,43 +72,47 @@ export default function Transfer() {
     }
   };
 
+  // Filter users based on Prosumer/Consumer rules
+  const getFilteredReceivers = () => {
+    if (!currentUser) return [];
+    if (currentUser.is_admin) return users.filter(u => u.user_id !== senderId);
+    
+    // Prosumers see only Consumers
+    if (currentUser.user_type === 'prosumer') {
+      return users.filter(u => u.user_type === 'consumer');
+    }
+    // Consumers see only other Consumers
+    if (currentUser.user_type === 'consumer') {
+      return users.filter(u => u.user_type === 'consumer' && u.user_id !== currentUser.user_id);
+    }
+    return [];
+  };
+
+  const filteredReceivers = getFilteredReceivers();
+  const isProsumer = currentUser?.user_type === 'prosumer';
+
   return (
     <ScrollView style={s.container}>
       <Text style={s.header}>💸 Send Value</Text>
 
-      {/* Sender Picker - Only show for Admin */}
-      {currentUser?.is_admin ? (
-        <>
-          <Text style={s.label}>From (Sender)</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipRow}>
-            {users.filter(u => u.user_type === 'prosumer').map((u) => (
-              <TouchableOpacity
-                key={u.user_id}
-                style={[s.chip, senderId === u.user_id && s.chipActive]}
-                onPress={() => setSenderId(u.user_id)}
-              >
-                <Text style={[s.chipText, senderId === u.user_id && s.chipTextActive]}>{u.user_id}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </>
-      ) : (
-        <View style={s.lockBox}>
-          <Text style={s.lockLabel}>Sending from your account: {currentUser?.user_id}</Text>
-        </View>
-      )}
+      {/* Sender Info */}
+      <View style={s.lockBox}>
+        <Text style={s.lockLabel}>
+          Logged in as: <Text style={{color: '#F59E0B'}}>{currentUser?.user_id}</Text> ({currentUser?.user_type})
+        </Text>
+      </View>
 
       {senderBalance !== null && (
-        <View style={s.balanceBox}>
-          <Text style={s.balanceLabel}>Available Yellow Coins</Text>
-          <Text style={s.balanceValue}>{senderBalance.toFixed(2)}</Text>
+        <View style={[s.balanceBox, !isProsumer && { borderLeftColor: '#22C55E' }]}>
+          <Text style={s.balanceLabel}>Available {isProsumer ? 'Yellow' : 'Green'} Coins</Text>
+          <Text style={[s.balanceValue, !isProsumer && { color: '#22C55E' }]}>{senderBalance.toFixed(2)}</Text>
         </View>
       )}
 
       {/* Receiver Picker */}
-      <Text style={s.label}>To (Receiver)</Text>
+      <Text style={s.label}>To (Receiver - {isProsumer ? 'Consumers Only' : 'Peers Only'})</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipRow}>
-        {users.filter(u => u.user_id !== senderId).map((u) => (
+        {filteredReceivers.map((u) => (
           <TouchableOpacity
             key={u.user_id}
             style={[s.chip, receiverId === u.user_id && s.chipActive]}
@@ -107,8 +124,12 @@ export default function Transfer() {
         ))}
       </ScrollView>
 
+      {filteredReceivers.length === 0 && (
+        <Text style={{color: '#64748B', fontSize: 12, fontStyle: 'italic', marginBottom: 10}}>No eligible receivers found.</Text>
+      )}
+
       {/* Amount Input */}
-      <Text style={s.label}>Amount (Yellow Coins)</Text>
+      <Text style={s.label}>Amount ({isProsumer ? 'Yellow' : 'Green'} Units)</Text>
       <TextInput
         style={s.input}
         placeholder="0.00"
@@ -119,19 +140,25 @@ export default function Transfer() {
       />
 
       {/* Transfer Button */}
-      <TouchableOpacity style={s.btn} onPress={handleTransfer} disabled={loading}>
+      <TouchableOpacity 
+        style={[s.btn, !isProsumer && { backgroundColor: '#22C55E' }]} 
+        onPress={handleTransfer} 
+        disabled={loading || filteredReceivers.length === 0}
+      >
         {loading ? (
           <ActivityIndicator color="#0F172A" />
         ) : (
-          <Text style={s.btnText}>Confirm Transfer</Text>
+          <Text style={s.btnText}>Confirm {isProsumer ? 'Sale' : 'Transfer'}</Text>
         )}
       </TouchableOpacity>
 
       {/* Transformation Note */}
       <View style={s.noteBox}>
-        <Text style={s.noteTitle}>🔄 Value Transformation</Text>
+        <Text style={s.noteTitle}>🔄 {isProsumer ? 'Supply Generation' : 'P2P Circulation'}</Text>
         <Text style={s.noteText}>
-          Yellow Coins (producer energy) automatically convert to Green Coins (system-available energy) when transferred to another user. This ensures value changes role as it moves through the system.
+          {isProsumer 
+            ? "When you transfer Yellow Coins (Prosumer Export), they convert to Green Coins (Market Supply) for Consumers to use."
+            : "Consumers transfer Green Coins directly between each other to settle P2P energy trades secured by the blockchain."}
         </Text>
       </View>
 
