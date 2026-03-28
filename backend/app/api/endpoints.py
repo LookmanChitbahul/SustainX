@@ -79,6 +79,15 @@ def transfer_value(request: schemas.TransferRequest, db: Session = Depends(get_d
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.post("/settle", response_model=schemas.TransactionResponse)
+def settle_debt_value(request: schemas.SettleRequest, db: Session = Depends(get_db)):
+    """Settle grid debt using green coins."""
+    try:
+        tx = logic.settle_debt(db, request.user_id, request.amount)
+        return tx
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 # ── Market & ML ────────────────────────────────────────────
 
 @router.get("/market", response_model=schemas.MarketResponse)

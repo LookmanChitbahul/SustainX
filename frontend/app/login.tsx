@@ -66,7 +66,7 @@ export default function LoginScreen() {
           <Text style={s.demoTitle}>🏆 Demo Credentials</Text>
           <Text style={s.demoText}>Admin ID: admin</Text>
           <Text style={s.demoText}>Prosumer ID: PR001</Text>
-          <Text style={s.demoText}>Consumer ID: CN001</Text>
+          <Text style={s.demoText}>Consumer ID: C001</Text>
           <Text style={s.demoText}>(Password for all is 12345678)</Text>
         </View>
       </View>
